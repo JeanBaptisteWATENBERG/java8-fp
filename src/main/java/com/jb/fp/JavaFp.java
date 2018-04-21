@@ -1,34 +1,20 @@
 package com.jb.fp;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * @author jeanbaptiste.watenberg@gmail.com
  */
 public class JavaFp {
-    public List<Movie> findByTitle(String title, List<Movie> movies) {
-        List<Movie> result = new ArrayList<>();
-        for (Movie movie: movies) {
-            addIfMatches(title, movie, result);
-        }
-        return result;
-    }
 
-    private void addIfMatches(String title, Movie movie, List<Movie> result) {
-        if (matches(title, movie)) result.add(movie);
-    }
-
-    private boolean matches(String title, Movie movie) {
-        return isInfixOf(movie.getTitle(), title);
-    }
-
-    private boolean isInfixOf(String whole, String title) {
-        return whole.contains(title);
-    }
+    private Function<String, Function<String, Boolean>> isInfixOf = title -> whole -> whole.contains(title);
+    private Function<Function<Movie, Boolean>, Function<Collection<Movie>, Collection<Movie>>> filter = predicate -> collection -> collection.stream().filter(movie -> predicate.apply(movie)).collect(Collectors.toList());
+    private Function<Movie, String> getTitle = Movie::getTitle;
+    private Function<String, Function<Movie, Boolean>> matches = title -> movie -> isInfixOf.apply(title).apply(getTitle.apply(movie));
+    public Function<String, Function<Collection<Movie>, Collection<Movie>>> findByTitle = query -> movies -> filter.apply(matches.apply(query)).apply(movies);
 
     public List<Movie> findByTitleBasic(String title, List<Movie> movies) {
         List<Movie> result = new ArrayList<>();
